@@ -11,6 +11,7 @@
 #include <QStringList>
 #include <QProcess>
 #include <QLineEdit>
+#include <QDir>
 
 namespace Ui {
 class Dialog;
@@ -22,6 +23,7 @@ class Dialog : public QDialog
 
 public:
     explicit Dialog(QWidget *parent = 0);
+    QString current_dir;
     QLabel *question;
     QPushButton *folder;
     QPushButton *video;
@@ -38,10 +40,11 @@ public:
     QHBoxLayout *l3;
     QVBoxLayout *l4;
     QHBoxLayout *l5;
-    QHBoxLayout *l6;
+    QVBoxLayout *l6;
     QLineEdit *line;
     QPushButton *ok;
     QWidget *enter_frame_rate;
+    QLabel *what_is_frame_rate;
     QProcess *recreation_process = nullptr;
     QLabel *how_finished;
     bool del_or_not;

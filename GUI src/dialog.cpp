@@ -77,6 +77,8 @@ void Dialog::choose_video()
     path = explorer->getOpenFileName(this, "Choosing video", QDir::rootPath());
     //Space to enter frame rate for FFMPEG
     QFont fk1("Calibri", 22);
+    what_is_frame_rate = new QLabel("Frame rate is an anmount of frames per second\nin process of splitting video.\nIt can be a float number");
+    what_is_frame_rate->setFont(fk1);
     line = new QLineEdit;
     line->setText("Enter frame rate, please");
     line->selectAll();
@@ -89,8 +91,11 @@ void Dialog::choose_video()
     l5->addWidget(line);
     l5->addWidget(ok);
     l5->addStretch();
+    l6 = new QVBoxLayout;
+    l6->addWidget(what_is_frame_rate);
+    l6->addLayout(l5);
     enter_frame_rate = new QWidget;
-    enter_frame_rate->setLayout(l5);
+    enter_frame_rate->setLayout(l6);
     enter_frame_rate->show();
     enter_frame_rate->move(470,300);
     connect(ok, SIGNAL(clicked()), this, SLOT(rate_entered()), Qt::DirectConnection);
@@ -123,9 +128,11 @@ void Dialog::GUI_disable()
 //lounching Recreator.exe with 3 arguments: path, rubbish_flag, frame-rate
 void Dialog::lounch_proc()
 {
+    current_dir = QDir::currentPath();
     delete_rubbish->exec();
     recreation_process = new QProcess();
     program = "Recreator.exe";
+    args.push_back(current_dir);
     args.push_back(path);
     if(del_or_not) args.push_back("1");
     else args.push_back("0");
@@ -138,7 +145,6 @@ void Dialog::lounch_proc()
     video->show();
     folder->show();
     this->setWindowTitle("Choose what to upload");
-    this->repaint();
     QFont fk1("Calibri", 22);
     how_finished = new QLabel;
     how_finished->setFont(fk1);
@@ -150,6 +156,7 @@ void Dialog::lounch_proc()
     else how_finished->setText("Process didn't finish!");
     how_finished->move(470,300);
     how_finished->setMaximumSize(300,100);
+    this->repaint();
     how_finished->show();
 }
 
