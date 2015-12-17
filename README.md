@@ -16,11 +16,11 @@ For building 2D_to_3D you will need qt creator, Visual Studio 2013 or higher, so
 
 Also you will need to dowload and install:
 
-	directx_aug2009_redist (http://www.microsoft.com/en-us/download/details.aspx?id=6883)
+	directx_aug2009_redist http://www.microsoft.com/en-us/download/details.aspx?id=6883
 	
-	vcredist_x64 (http://www.microsoft.com/en-us/download/details.aspx?id=15336)
+	vcredist_x64 http://www.microsoft.com/en-us/download/details.aspx?id=15336
 	
-	the latest GPU driver for your OS (http://www.nvidia.com/Download/index.aspx?lang=en-us)
+	the latest GPU driver for your OS http://www.nvidia.com/Download/index.aspx?lang=en-us
 	
 After downloading everything you can start building:
 
