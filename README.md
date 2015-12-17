@@ -23,7 +23,8 @@ Also you will need to dowload and install:
 	the latest GPU driver for your OS (http://www.nvidia.com/Download/index.aspx?lang=en-us)
 	
 After downloading everything you can start building:
-...
+
+............................
 
 ###Installation and use
 
