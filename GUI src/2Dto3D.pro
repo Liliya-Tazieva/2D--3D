@@ -12,9 +12,13 @@ TARGET = 2Dto3D
 TEMPLATE = app
 
 
-SOURCES += main.cpp\
-        dialog.cpp
+SOURCES += \
+         \
+    process_louncher.cpp \
+dialog.cpp \
+main.cpp
 
-HEADERS  += dialog.h
+HEADERS  += dialog.h \
+    process_louncher.h
 
 FORMS    += dialog.ui

@@ -56,7 +56,6 @@ Dialog::Dialog(QWidget *parent) :
     //Signal-slot connection for main dialog
     connect(video, SIGNAL(clicked()), this, SLOT(choose_video()));
     connect(folder, SIGNAL(clicked()), this, SLOT(choose_folder()));
-    connect(this, SIGNAL(main_dialog()), this, SLOT(GUI_disable()));
     connect(this, SIGNAL(may_lounch()), this, SLOT(lounch_proc()), Qt::DirectConnection);
 
 }
@@ -70,7 +69,7 @@ void Dialog::ignore_rub()
 {
     del_or_not = false;
 }
-//Choosing wideo explorer
+//Choosing video explorer
 void Dialog::choose_video()
 {
     explorer = new QFileDialog;
@@ -105,7 +104,7 @@ void Dialog::rate_entered()
 {
     frame_rate = line->text();
     enter_frame_rate->close();
-    emit Dialog::main_dialog();
+    emit Dialog::may_lounch();
 }
 //Choosing folder with photos explorer
 void Dialog::choose_folder()
@@ -113,51 +112,56 @@ void Dialog::choose_folder()
     explorer = new QFileDialog;
     path = explorer->getExistingDirectory(this, "Choosing folder with photos", QDir::rootPath(),
                                        QFileDialog::ShowDirsOnly| QFileDialog::DontResolveSymlinks);
-    emit Dialog::main_dialog();
+    emit Dialog::may_lounch();
 }
-//Disable main dialog, while process is executing
+//Disable main dialog, while process is executing (function)
 void Dialog::GUI_disable()
 {
-    video->hide();
-    folder->hide();
+    video->setEnabled(false);
+    video->repaint();
+    folder->setEnabled(false);
+    folder->repaint();
     question->setText("Recreating...");
-    this->setWindowTitle("Process lounched");
-    this->repaint();
-    emit Dialog::may_lounch();
+    question->repaint();
+}
+//Enable main dialog, when process has finished (slot)
+void Dialog::GUI_enable()
+{
+    video->setEnabled(true);
+    video->repaint();
+    folder->setEnabled(true);
+    folder->repaint();
+    question->setText("What do you want to upload?");
+    question->repaint();
 }
 //lounching Recreator.exe with 3 arguments: path, rubbish_flag, frame-rate
 void Dialog::lounch_proc()
 {
+    GUI_disable();
+
+    //Command line args for Recreator.exe
     current_dir = QDir::currentPath();
     delete_rubbish->exec();
-    recreation_process = new QProcess();
     program = "Recreator.exe";
     args.push_back(current_dir);
     args.push_back(path);
     if(del_or_not) args.push_back("1");
     else args.push_back("0");
     args.push_back(frame_rate);
-    recreation_process->start(program, args);
 
-    bool f = false;
-    f = recreation_process->waitForFinished(-1);
-    question->setText("What do you want to upload?");
-    video->show();
-    folder->show();
-    this->setWindowTitle("Choose what to upload");
-    QFont fk1("Calibri", 22);
-    how_finished = new QLabel;
-    how_finished->setFont(fk1);
-    if(f)
-    {
-        if(recreation_process->exitStatus() == QProcess::NormalExit) how_finished->setText("Recreated successfully");
-        else how_finished->setText("Something went wrong");
-    }
-    else how_finished->setText("Process didn't finish!");
-    how_finished->move(470,300);
-    how_finished->setMaximumSize(300,100);
-    this->repaint();
-    how_finished->show();
+    //Initialize new thread for recreation process
+    process_louncher *recreation_process_louncer = new process_louncher(program, args);
+    QThread *thread = new QThread;
+    recreation_process_louncer->moveToThread(thread);
+    thread->start();
+
+    //Signal-slot connection for process_louncher
+    connect(thread, SIGNAL(started()), recreation_process_louncer, SLOT(process()));
+    connect(recreation_process_louncer, SIGNAL(finished()), thread, SLOT(quit()));
+    connect(recreation_process_louncer, SIGNAL(finished()), this, SLOT(GUI_enable()));
+    connect(recreation_process_louncer, SIGNAL(finished()), recreation_process_louncer, SLOT(deleteLater()));
+    connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
+
 }
 
 Dialog::~Dialog()

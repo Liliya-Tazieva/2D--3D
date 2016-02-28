@@ -12,6 +12,8 @@
 #include <QProcess>
 #include <QLineEdit>
 #include <QDir>
+#include <QThread>
+#include "process_louncher.h"
 
 namespace Ui {
 class Dialog;
@@ -41,15 +43,15 @@ public:
     QVBoxLayout *l4;
     QHBoxLayout *l5;
     QVBoxLayout *l6;
-    QLineEdit *line;
     QPushButton *ok;
     QWidget *enter_frame_rate;
     QLabel *what_is_frame_rate;
-    QProcess *recreation_process = nullptr;
-    QLabel *how_finished;
+    QLineEdit *line;
     bool del_or_not;
     QString frame_rate = "0";
     ~Dialog();
+
+    void GUI_disable();
 
 public slots:
     void choose_video();
@@ -57,11 +59,10 @@ public slots:
     void del_rub();
     void ignore_rub();
     void rate_entered();
-    void GUI_disable();
     void lounch_proc();
+    void GUI_enable();
 
 signals:
-    void main_dialog();
     void may_lounch();
 
 private:
