@@ -5,6 +5,7 @@
 #include <QString>
 #include <QStringList>
 #include <QProcess>
+#include <QWidget>
 
 class process_louncher : public QObject
 {
@@ -13,7 +14,7 @@ public:
 
     process_louncher(QString, QStringList);
     void how_finished(QProcess::ExitStatus);
-
+    QWidget *finish_window;
 
 signals:
     void finished();

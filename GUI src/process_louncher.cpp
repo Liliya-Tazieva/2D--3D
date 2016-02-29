@@ -23,7 +23,7 @@ void process_louncher::process()
 //Finish window
 void process_louncher::how_finished(QProcess::ExitStatus ex_stat)
 {
-    QWidget *finish_window = new QWidget;
+    finish_window = new QWidget;
     QFont fk1("Calibri", 22);
     QPushButton *ok_fw = new QPushButton;
     QLabel *label = new QLabel;
@@ -40,12 +40,12 @@ void process_louncher::how_finished(QProcess::ExitStatus ex_stat)
     finish_window->setLayout(l);
     finish_window->show();
 
-    connect(ok_fw, SIGNAL(clicked(bool)), finish_window, SLOT(close()));
-    connect(ok_fw, SIGNAL(clicked(bool)), this, SLOT(finishing_process(bool)));
+    connect(ok_fw, SIGNAL(clicked(bool)), this, SLOT(finishing_process(bool)), Qt::DirectConnection);
 }
 
 //After recreation, thread's work is done
 void process_louncher::finishing_process(bool)
 {
+    finish_window->close();
     emit process_louncher::finished();
 }

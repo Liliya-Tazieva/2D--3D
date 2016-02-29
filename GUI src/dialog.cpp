@@ -168,10 +168,11 @@ void Dialog::lounch_proc()
 
     //Signal-slot connection for process_louncher
     connect(thread, SIGNAL(started()), recreation_process_louncer, SLOT(process()));
-    connect(recreation_process_louncer, SIGNAL(finished()), thread, SLOT(quit()));
-    connect(recreation_process_louncer, SIGNAL(finished()), this, SLOT(GUI_enable()));
-    connect(recreation_process_louncer, SIGNAL(finished()), recreation_process_louncer, SLOT(deleteLater()));
-    connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()));
+    connect(recreation_process_louncer, SIGNAL(finished()), thread, SLOT(quit()), Qt::QueuedConnection);
+    connect(recreation_process_louncer, SIGNAL(finished()), this, SLOT(GUI_enable()), Qt::QueuedConnection);
+    connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()), Qt::QueuedConnection);
+    connect(recreation_process_louncer, SIGNAL(finished()), recreation_process_louncer, SLOT(deleteLater()),
+                                                                                        Qt::QueuedConnection);
 
 }
 
