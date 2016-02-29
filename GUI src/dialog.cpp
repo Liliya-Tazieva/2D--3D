@@ -17,16 +17,19 @@ Dialog::Dialog(QWidget *parent) :
     folder->setFont(fk2);
     video=new QPushButton("&Video");
     video->setFont(fk2);
+    image_label = new QLabel;
+    image_label->setPixmap(QPixmap::fromImage(QImage("Bear.png")));
     l1 = new QHBoxLayout;
     l1->addWidget(video);
     l1->addWidget(folder);
     l2 = new QVBoxLayout;
+    l2->addWidget(image_label);
     l2->addWidget(question);
     l2->addLayout(l1);
     l2->addStretch();
     setLayout(l2);
-    setMaximumSize(200, 50);
-    setWindowTitle("Choose what to upload");
+    setWindowFlags(Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint);
+    setWindowTitle("2Dto3D");
 
     //Appearance of the dialog, that asks about rubbish
     delete_rubbish = new QDialog;
@@ -72,6 +75,7 @@ void Dialog::ignore_rub()
 //Choosing video explorer
 void Dialog::choose_video()
 {
+    path.clear();
     explorer = new QFileDialog;
     path = explorer->getOpenFileName(this, "Choosing video", QDir::rootPath());
     //Space to enter frame rate for FFMPEG
@@ -102,6 +106,7 @@ void Dialog::choose_video()
 //Processing entered frame-rate
 void Dialog::rate_entered()
 {
+    frame_rate.clear();
     frame_rate = line->text();
     enter_frame_rate->close();
     emit Dialog::may_lounch();
@@ -109,6 +114,7 @@ void Dialog::rate_entered()
 //Choosing folder with photos explorer
 void Dialog::choose_folder()
 {
+    path.clear();
     explorer = new QFileDialog;
     path = explorer->getExistingDirectory(this, "Choosing folder with photos", QDir::rootPath(),
                                        QFileDialog::ShowDirsOnly| QFileDialog::DontResolveSymlinks);
@@ -123,6 +129,8 @@ void Dialog::GUI_disable()
     folder->repaint();
     question->setText("Recreating...");
     question->repaint();
+    image_label->setPixmap(QPixmap::fromImage(QImage("Mesh.png")));
+    image_label->repaint();
 }
 //Enable main dialog, when process has finished (slot)
 void Dialog::GUI_enable()
@@ -133,6 +141,8 @@ void Dialog::GUI_enable()
     folder->repaint();
     question->setText("What do you want to upload?");
     question->repaint();
+    image_label->setPixmap(QPixmap::fromImage(QImage("Bear.png")));
+    image_label->repaint();
 }
 //lounching Recreator.exe with 3 arguments: path, rubbish_flag, frame-rate
 void Dialog::lounch_proc()
@@ -140,6 +150,7 @@ void Dialog::lounch_proc()
     GUI_disable();
 
     //Command line args for Recreator.exe
+    args.clear();
     current_dir = QDir::currentPath();
     delete_rubbish->exec();
     program = "Recreator.exe";

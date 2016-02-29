@@ -13,6 +13,7 @@
 #include <QLineEdit>
 #include <QDir>
 #include <QThread>
+#include <QImage>
 #include "process_louncher.h"
 
 namespace Ui {
@@ -47,6 +48,7 @@ public:
     QWidget *enter_frame_rate;
     QLabel *what_is_frame_rate;
     QLineEdit *line;
+    QLabel *image_label;
     bool del_or_not;
     QString frame_rate = "0";
     ~Dialog();

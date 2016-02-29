@@ -20,6 +20,7 @@ signals:
 
 public slots:
     void process();
+    void finishing_process(bool);
 
 private:
     QString program;

@@ -51,16 +51,23 @@ int main(int argc, char* argv[])
 		//FFMPEG splits video to frames and saves results as photos
 		LOG(INFO) << "FFMPEG started";
 		string temporary = working_path + "\\Frames\\image%d.jpg";
-		Process::Args args1;
-		args1.push_back("-i");
-		args1.push_back(argv[2]);
-		args1.push_back("-r");
-		args1.push_back(f_r.c_str());
-		args1.push_back(temporary.c_str());
-		temporary = current_path + "\\Project_Programs\\ffmpeg.exe";
-		ProcessHandle ph(Process::launch(temporary.c_str(), args1));
-		int rc = ph.wait();
-		LOG(INFO) << "FFMPEG finished";
+		try
+		{
+			Process::Args args1;
+			args1.push_back("-i");
+			args1.push_back(argv[2]);
+			args1.push_back("-r");
+			args1.push_back(f_r.c_str());
+			args1.push_back(temporary.c_str());
+			temporary = current_path + "\\Project_Programs\\ffmpeg.exe";
+			ProcessHandle ph(Process::launch(temporary.c_str(), args1));
+			int rc = ph.wait();
+			LOG(INFO) << "FFMPEG finished";
+		}
+		catch (Poco::Exception &e)
+		{
+			LOG(INFO) << "POCO failed:" << endl << e.message();
+		}
 	}
 	else LOG(INFO) << "Folder with photos";
 	f.close();
@@ -68,98 +75,140 @@ int main(int argc, char* argv[])
 	//VisualSFM turn photos into cloud point and creates some stuff
 	//including cmp.ini, that will be an argument for CMPMVS
 	LOG(INFO) << "VSFM started";
-	Process::Args args2;
-	args2.push_back("sfm+cmp");
 	string arg_str;
-	if (flag)
+	try
 	{
-		arg_str = argv[2];
-		for (int i = 0; arg_str[i] != '\0'; ++i) if (arg_str[i] == '/') arg_str[i] = '\\';
+		Process::Args args2;
+		args2.push_back("sfm+cmp");
+		if (flag)
+		{
+			arg_str = argv[2];
+			for (int i = 0; arg_str[i] != '\0'; ++i) if (arg_str[i] == '/') arg_str[i] = '\\';
+		}
+		else arg_str = working_path + "\\Frames";
+		args2.push_back(arg_str.c_str());
+		arg_str = working_path + "\\VSFM_result.nvm";
+		args2.push_back(arg_str.c_str());
+		arg_str = current_path + "\\Project_Programs\\VSFM\\VisualSFM.exe";
+		ProcessHandle ph(Process::launch(arg_str.c_str(), args2));
+		int rc = ph.wait();
+		LOG(INFO) << "VSFM finished";
 	}
-	else arg_str = working_path + "\\Frames";
-	args2.push_back(arg_str.c_str());
-	arg_str = working_path + "\\VSFM_result.nvm";
-	args2.push_back(arg_str.c_str());
-	arg_str = current_path + "\\Project_Programs\\VSFM\\VisualSFM.exe";
-	ProcessHandle ph(Process::launch(arg_str.c_str(), args2));
-	int rc = ph.wait();
-	LOG(INFO) << "VSFM finished";
+	catch (Poco::Exception &e)
+	{
+		LOG(INFO) << "POCO failed:" << endl << e.message();
+	}
 
 	//Changing ini file
-	LOG(INFO) << "Changing .ini file";
-	ifstream f1;
-	ofstream f2;
-	arg_str = working_path + "\\VSFM_result.nvm.cmp\\00\\mvs.ini";
-	f1.open(arg_str.c_str());
-	arg_str = working_path + "\\VSFM_result.nvm.cmp\\00\\mvs_res.ini";
-	f2.open(arg_str.c_str());
-	for (int i = 1; i < 37; ++i)
+	try
 	{
-	string s;
-	f1 >> s;
-	if (i == 8) s = s.substr(0, 6) + '2';
-	else if (i == 14) s = s.substr(0, 15) + "25";
-	else if (i == 31)
+		LOG(INFO) << "Changing .ini file";
+		ifstream f1;
+		ofstream f2;
+		arg_str = working_path + "\\VSFM_result.nvm.cmp\\00\\mvs.ini";
+		f1.open(arg_str.c_str());
+		arg_str = working_path + "\\VSFM_result.nvm.cmp\\00\\mvs_res.ini";
+		f2.open(arg_str.c_str());
+		for (int i = 1; i < 37; ++i)
+		{
+		string s;
+		f1 >> s;
+		if (i == 8) s = s.substr(0, 6) + '2';
+		else if (i == 14) s = s.substr(0, 15) + "25";
+		else if (i == 31)
+		{
+		f2 << s << endl;
+		f2 << "doComputeDEMandOrtoPhoto=FALSE" << endl;
+		f2 << "doGenerateVideoFrames=FALSE" << endl;
+		f2 << "#EOF" << endl << endl << endl;
+		break;
+		}
+		f2 << s << endl;
+		}
+		f1.close();
+		f2.close();
+		LOG(INFO) << "Changed";
+	}
+	catch (SystemException &e)
 	{
-	f2 << s << endl;
-	f2 << "doComputeDEMandOrtoPhoto=FALSE" << endl;
-	f2 << "doGenerateVideoFrames=FALSE" << endl;
-	f2 << "#EOF" << endl << endl << endl;
-	break;
+		LOG(INFO) << "Failed to change ini file" << endl << e.message();
 	}
-	f2 << s << endl;
-	}
-	f1.close();
-	f2.close();
-	LOG(INFO) << "Changed";
 	
 	//CMPMVS creates some stuff, including textures(png type) and mesh(wrl type)
 	arg_str = working_path + "\\VSFM_result.nvm.cmp\\00\\mvs_res.ini";
 	LOG(INFO) << "CMPMVS started";
-	Process::Args args3;
-	args3.push_back(arg_str.c_str());
-	for (int i = 0; arg_str[i] != '\0'; ++i) if (arg_str[i] == '/') arg_str[i] = '\\';
-	arg_str = current_path + "\\Project_Programs\\CMPMVS\\CMPMVS.exe";
-	for (int i = 0; i < arg_str.length(); ++i) if (arg_str[i] == '\\') idx = i;
-	ph = ProcessHandle(Process::launch(arg_str.c_str(), args3,
-										arg_str.substr(0,idx).c_str()));
-	rc = ph.wait();
-	LOG(INFO) << "CMPMVS finished";
+	try
+	{
+		Process::Args args3;
+		args3.push_back(arg_str.c_str());
+		for (int i = 0; arg_str[i] != '\0'; ++i) if (arg_str[i] == '/') arg_str[i] = '\\';
+		arg_str = current_path + "\\Project_Programs\\CMPMVS\\CMPMVS.exe";
+		for (int i = 0; i < arg_str.length(); ++i) if (arg_str[i] == '\\') idx = i;
+		ProcessHandle ph = ProcessHandle(Process::launch(arg_str.c_str(), args3,
+											arg_str.substr(0,idx).c_str()));
+		int rc = ph.wait();
+		LOG(INFO) << "CMPMVS finished";
+	}
+	catch (Poco::Exception &e)
+	{
+		LOG(INFO) << "POCO failed:" << endl << e.message();
+	}
 	
 	//MeshLab resave simplified mesh like an obj type file
 	LOG(INFO) << "MeshLab started";
-	Process::Args args4;
-	arg_str = "-i " + working_path + "\\VSFM_result.nvm.cmp\\00\\data\\_OUT\\simplified25\\meshTextured.wrl";
-	args4.push_back(arg_str.c_str());
-	arg_str = "-o " + working_path + "\\simple_mesh.obj";
-	args4.push_back(arg_str.c_str());
-	args4.push_back("-m vc vn fc wt");
-	arg_str = current_path + "\\Project_Programs\\MeshLab\\meshlabserver.exe";
-	ph = ProcessHandle(Process::launch(arg_str.c_str(), args4));
-	rc = ph.wait();
-	LOG(INFO) << "MeshLab finished";
-
+	try
+	{
+		Process::Args args4;
+		arg_str = "-i " + working_path + "\\VSFM_result.nvm.cmp\\00\\data\\_OUT\\simplified25\\meshTextured.wrl";
+		args4.push_back(arg_str.c_str());
+		arg_str = "-o " + working_path + "\\simple_mesh.obj";
+		args4.push_back(arg_str.c_str());
+		args4.push_back("-m vc vn fc wt");
+		arg_str = current_path + "\\Project_Programs\\MeshLab\\meshlabserver.exe";
+		ProcessHandle ph = ProcessHandle(Process::launch(arg_str.c_str(), args4));
+		int rc = ph.wait();
+		LOG(INFO) << "MeshLab finished";
+	}
+	catch (Poco::Exception &e)
+	{
+		LOG(INFO) << "POCO failed:" << endl << e.message();
+	}
+	
 	//Shift textures into folder, that contains video
-	LOG(INFO) << "Shhifting useful files to parent directory";
-	arg_str = "copy " + working_path + "\\VSFM_result.nvm.cmp\\00\\data\\_OUT\\simplified25\\*.png "
-		+ working_path + "\\*.png";
-	system(arg_str.c_str());
-	LOG(INFO) << "Shifted";
+	try
+	{
+		LOG(INFO) << "Shhifting useful files to parent directory";
+		arg_str = "copy " + working_path + "\\VSFM_result.nvm.cmp\\00\\data\\_OUT\\simplified25\\*.png "
+			+ working_path + "\\*.png";
+		system(arg_str.c_str());
+		LOG(INFO) << "Shifted";
+	}
+	catch (SystemException &e)
+	{
+		LOG(INFO) << "Shifting failed:" << endl << e.message();
+	}
 	
 	//Remove everything else, if necessary
-	if(flag2)
+	try
 	{
-		LOG(INFO) << "Removing rubbish";
-		if (!flag)
+		if(flag2)
 		{
-			arg_str = "RMDIR /S /Q " + working_path + "\\Frames";
+			LOG(INFO) << "Removing rubbish";
+			if (!flag)
+			{
+				arg_str = "RMDIR /S /Q " + working_path + "\\Frames";
+				system(arg_str.c_str());
+			}
+			arg_str = "RMDIR /S /Q " + working_path + "\\VSFM_result.nvm.cmp";
 			system(arg_str.c_str());
+			arg_str = "del " + working_path + "\\VSFM_result.nvm";
+			system(arg_str.c_str());
+			LOG(INFO) << "All rubbish removed";
 		}
-		arg_str = "RMDIR /S /Q " + working_path + "\\VSFM_result.nvm.cmp";
-		system(arg_str.c_str());
-		arg_str = "del " + working_path + "\\VSFM_result.nvm";
-		system(arg_str.c_str());
-		LOG(INFO) << "All rubbish removed";
+	}
+	catch (SystemException &e)
+	{
+		LOG(INFO) << "Deleting files failed:" << endl << e.message();
 	}
 	LOG(INFO) << "Recreator finished";
 	return 0;
