@@ -2,6 +2,7 @@
 #define DIALOG_H
 
 #include <QDialog>
+#include <QWidget>
 #include <QPushButton>
 #include <QFileDialog>
 #include <QHBoxLayout>
@@ -51,6 +52,11 @@ public:
     QLabel *image_label;
     bool del_or_not;
     QString frame_rate = "0";
+    process_louncher *recreation_process_louncer;
+    QWidget *finish_window;
+    QPushButton *ok_fw;
+    QLabel *recreated;
+    QVBoxLayout *l7;
     ~Dialog();
 
     void GUI_disable();
@@ -62,7 +68,8 @@ public slots:
     void ignore_rub();
     void rate_entered();
     void lounch_proc();
-    void GUI_enable();
+    void GUI_enable(bool);
+    void recreation_finished();
 
 signals:
     void may_lounch();

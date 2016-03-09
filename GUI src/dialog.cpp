@@ -50,6 +50,21 @@ Dialog::Dialog(QWidget *parent) :
     delete_rubbish->setMaximumSize(200, 50);
     delete_rubbish->setWindowTitle("Delete rubbish or not");
 
+    //Appearance of the finish window
+    finish_window = new QWidget;
+    ok_fw = new QPushButton;
+    recreated = new QLabel;
+    l7 = new QVBoxLayout;
+    recreated->setFont(fk1);
+    ok_fw->setFont(fk1);
+    ok_fw->setText("OK");
+    l7->addWidget(recreated);
+    l7->addWidget(ok_fw);
+    finish_window->move(470,300);
+    finish_window->setWindowTitle("Recreation finished");
+    finish_window->setLayout(l7);
+    finish_window->setWindowFlags(Qt::WindowMinMaxButtonsHint);
+
     //Signal-slot connection for rubbish-dialog
     connect(yes, SIGNAL(clicked()), this, SLOT(del_rub()), Qt::DirectConnection);
     connect(yes, SIGNAL(clicked()), delete_rubbish, SLOT(accept()), Qt::DirectConnection);
@@ -61,6 +76,8 @@ Dialog::Dialog(QWidget *parent) :
     connect(folder, SIGNAL(clicked()), this, SLOT(choose_folder()));
     connect(this, SIGNAL(may_lounch()), this, SLOT(lounch_proc()), Qt::DirectConnection);
 
+    //Signal-slot connection for finish window
+    connect(ok_fw, SIGNAL(clicked(bool)), this, SLOT(GUI_enable(bool)));
 }
 //Delete rubbish
 void Dialog::del_rub()
@@ -133,8 +150,11 @@ void Dialog::GUI_disable()
     image_label->repaint();
 }
 //Enable main dialog, when process has finished (slot)
-void Dialog::GUI_enable()
+void Dialog::GUI_enable(bool)
 {
+    finish_window->close();
+    recreation_process_louncer->deleteLater();
+
     video->setEnabled(true);
     video->repaint();
     folder->setEnabled(true);
@@ -161,7 +181,7 @@ void Dialog::lounch_proc()
     args.push_back(frame_rate);
 
     //Initialize new thread for recreation process
-    process_louncher *recreation_process_louncer = new process_louncher(program, args);
+    recreation_process_louncer = new process_louncher(program, args);
     QThread *thread = new QThread;
     recreation_process_louncer->moveToThread(thread);
     thread->start();
@@ -169,11 +189,16 @@ void Dialog::lounch_proc()
     //Signal-slot connection for process_louncher
     connect(thread, SIGNAL(started()), recreation_process_louncer, SLOT(process()));
     connect(recreation_process_louncer, SIGNAL(finished()), thread, SLOT(quit()), Qt::QueuedConnection);
-    connect(recreation_process_louncer, SIGNAL(finished()), this, SLOT(GUI_enable()), Qt::QueuedConnection);
+    connect(recreation_process_louncer, SIGNAL(finished()), this, SLOT(recreation_finished()), Qt::QueuedConnection);
     connect(thread, SIGNAL(finished()), thread, SLOT(deleteLater()), Qt::QueuedConnection);
-    connect(recreation_process_louncer, SIGNAL(finished()), recreation_process_louncer, SLOT(deleteLater()),
-                                                                                        Qt::QueuedConnection);
+}
 
+void Dialog::recreation_finished()
+{
+    QProcess::ExitStatus ex_stat = recreation_process_louncer->getExStat();
+    if(ex_stat == QProcess::NormalExit) recreated->setText("Recreated successfully");
+    else recreated->setText("Something went wrong/nLook into log file");
+    finish_window->show();
 }
 
 Dialog::~Dialog()

@@ -5,23 +5,18 @@
 #include <QString>
 #include <QStringList>
 #include <QProcess>
-#include <QWidget>
-
 class process_louncher : public QObject
 {
     Q_OBJECT
 public:
-
     process_louncher(QString, QStringList);
-    void how_finished(QProcess::ExitStatus);
-    QWidget *finish_window;
+    QProcess::ExitStatus getExStat();
 
 signals:
     void finished();
 
 public slots:
     void process();
-    void finishing_process(bool);
 
 private:
     QString program;
