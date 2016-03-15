@@ -158,15 +158,30 @@ int main(int argc, char* argv[])
 	LOG(INFO) << "MeshLab started";
 	try
 	{
-		Process::Args args4;
-		arg_str = "-i " + working_path + "\\VSFM_result.nvm.cmp\\00\\data\\_OUT\\simplified25\\meshTextured.wrl";
-		args4.push_back(arg_str.c_str());
-		arg_str = "-o " + working_path + "\\simple_mesh.obj";
-		args4.push_back(arg_str.c_str());
-		args4.push_back("-m vc vn fc wt");
+		//folder for simple mesh
+		string command = "mkdir " + working_path + "\\Simplified_25";
+		system(command.c_str());
+		//resaving simple mesh
+		Process::Args args4_1, args4_2;
+		arg_str = "-i " + working_path + "\\VSFM_result.nvm.cmp\\00\\data\\_OUT\\simplified25\\meshAvImgTex.wrl";
+		args4_1.push_back(arg_str.c_str());
+		arg_str = "-o " + working_path + "\\Simplified_25\\simple_mesh.obj";
+		args4_1.push_back(arg_str.c_str());
+		args4_1.push_back("-m vc vn fc wt");
 		arg_str = current_path + "\\Project_Programs\\MeshLab\\meshlabserver.exe";
-		ProcessHandle ph = ProcessHandle(Process::launch(arg_str.c_str(), args4));
+		ProcessHandle ph = ProcessHandle(Process::launch(arg_str.c_str(), args4_1));
 		int rc = ph.wait();
+
+		//resaving original mesh
+		arg_str = "-i " + working_path + "\\VSFM_result.nvm.cmp\\00\\data\\_OUT\\meshAvImgTex.wrl";
+		args4_2.push_back(arg_str.c_str());
+		arg_str = "-o " + working_path + "\\original_mesh.obj";
+		args4_2.push_back(arg_str.c_str());
+		args4_2.push_back("-m vc vn fc wt");
+		arg_str = current_path + "\\Project_Programs\\MeshLab\\meshlabserver.exe";
+		ph = ProcessHandle(Process::launch(arg_str.c_str(), args4_2));
+		rc = ph.wait();
+
 		LOG(INFO) << "MeshLab finished";
 	}
 	catch (Poco::Exception &e)
@@ -177,10 +192,17 @@ int main(int argc, char* argv[])
 	//Shift textures into folder, that contains video
 	try
 	{
-		LOG(INFO) << "Shhifting useful files to parent directory";
-		arg_str = "copy " + working_path + "\\VSFM_result.nvm.cmp\\00\\data\\_OUT\\simplified25\\*.png "
+		//textures for simple mesh
+		LOG(INFO) << "Shifting useful files to parent directory";
+		arg_str = "copy " + working_path + "\\VSFM_result.nvm.cmp\\00\\data\\_OUT\\simplified25\\meshAvImgTex.wrl*.png "
+			+ working_path + "\\Simplified_25\\*.png";
+		system(arg_str.c_str());
+
+		//textures for original mesh
+		arg_str = "copy " + working_path + "\\VSFM_result.nvm.cmp\\00\\data\\_OUT\\meshAvImgTex.wrl*.png "
 			+ working_path + "\\*.png";
 		system(arg_str.c_str());
+
 		LOG(INFO) << "Shifted";
 	}
 	catch (SystemException &e)
